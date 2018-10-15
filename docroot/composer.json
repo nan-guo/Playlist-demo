@@ -1,0 +1,16 @@
+{
+    "name": "nan/playlist",
+    "description": "Test playlist",
+    "authors": [
+        {
+            "name": "Nan GUO",
+            "email": "guonanhq@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "App\\": ["app/", "src/"]
+        }
+    },
+    "require": {}
+}
