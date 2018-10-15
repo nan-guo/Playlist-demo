@@ -1,0 +1,60 @@
+version: '2'
+
+services:
+
+    #######################################
+    # Site
+    #######################################
+    app:
+        container_name: PLAYLIST_APP
+        build: .
+        volumes:
+            - ../docroot:/var/www:cached
+            - $PWD/data/logs/apache:/var/log/apache2:rw
+        links:
+            - db:db
+        ports:
+            - "80:80"
+
+    #######################################
+    # MySQL server 5.7
+    #######################################
+    db:
+        container_name: PLAYLIST_MYSQL
+        image: mysql:5.7
+        volumes:
+            - $PWD/conf/mysql/my.cnf:/etc/mysql/my.cnf:ro
+            # - $PWD/data/mysql:/var/lib/mysql/:rw
+            - $PWD/data/logs/mysql:/var/log/mysql/:rw
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: playlistbdd
+            MYSQL_USER: admin
+            MYSQL_PASSWORD: admin
+
+    #######################################
+    # phpMyAdmin
+    #######################################
+    phpmyadmin:
+        container_name: PLAYLIST_PHPMYADMIN
+        image: phpmyadmin/phpmyadmin
+        links:
+            - db:db
+        ports:
+            - 8081:80
+
+    #######################################
+    # Mysql Backup
+    #######################################
+    db_backup:
+        container_name: PLAYLIST_MYSQL_BACKUP
+        image: dsteinkopf/backup-all-mysql:latest
+        environment:
+            - MYSQL_USER=admin
+            - MYSQL_ENV_MYSQL_ROOT_PASSWORD=admin
+            - BACKUP_INTERVAL=20000
+            - BACKUP_FIRSTDELAY=3600
+        links:
+            - db:mysql
+        volumes:
+            - $PWD/data/mysql-backup:/var/dbdumps
