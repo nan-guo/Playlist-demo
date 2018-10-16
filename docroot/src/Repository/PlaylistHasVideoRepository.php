@@ -32,6 +32,41 @@ class PlaylistHasVideoRepository extends BaseRepository
         return $this->insert($playlistHasVideo);
     }
 
+    /**
+     * @var Object $obj
+     */
+    public function remove($obj)
+    {
+        $res = $this->prepare('DELETE FROM '.static::$table.' WHERE id = ?', [$obj->getId()])->execute();
+
+        if ($res) {
+            return $this->reOrderPlaylist($obj);
+        }
+
+        return $res;
+    }
+
+    /**
+     * Reorder position
+     * 
+     * @var Object $obj
+     */
+    public function reOrderPlaylist($obj)
+    {
+        $prePosition = $obj->getPosition() - 1; 
+
+        if ($prePosition < 0) {
+            return true;
+        } else {
+            $sql = 'SET @count := '.$prePosition.';';
+            $sql .= 'UPDATE '.static::$table.' SET position = (@count:= @count + 1) WHERE playlist = ? AND position > ?';
+            return $this->prepare(
+                $sql,
+                [$obj->getPlaylist(), $obj->getPosition()]
+            );
+        }
+    }
+
     public function getLastPosition($playlist)
     {
         return $this->prepare('SELECT position FROM '. static::$table .' WHERE playlist = ? ORDER BY position DESC LIMIT 1', [$playlist->getId()])->fetch();
